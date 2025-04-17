@@ -1,0 +1,110 @@
+# 30122-정가은
+
+class BiomassFuel:
+    def __init__(self, name, cellulose_ratio):
+        self.name = name
+        self.cellulose_ratio = cellulose_ratio
+
+class BiomassSimulation:
+    BASE_HEAT = 16.2 
+
+    def __init__(self, fuel, dryness, temperature, oxygen_status):
+        self.fuel = fuel
+        self.dryness = dryness
+        self.temperature = temperature
+        self.oxygen_status = oxygen_status
+
+    def calculate_heat(self):
+        base_heat = (self.fuel.cellulose_ratio / 100) * self.BASE_HEAT
+        moisture_factor = {'건조': 0.05, '보통': 0.15, '습함': 0.3}
+        moisture_penalty = moisture_factor[self.dryness] * base_heat
+
+        oxygen_penalty = 0
+        if self.oxygen_status == '부족':
+            oxygen_penalty = 0.2 * base_heat
+        elif self.oxygen_status == '과잉':
+            oxygen_penalty = 0.1 * base_heat
+
+        final_heat = base_heat - moisture_penalty - oxygen_penalty
+        return round(final_heat, 2)
+
+    def calculate_efficiency(self):
+        return round((self.calculate_heat() / self.BASE_HEAT) * 100, 2)
+
+fuel_library = {
+    '나무': 45,
+    '볏짚': 38,
+    '폐목재': 50,
+    '음식물쓰레기': 25,
+    '톱밥': 55,
+    '커피박': 60,
+}
+
+dryness_list = ['건조', '보통', '습함']
+oxygen_list = ['부족', '적정', '과잉']
+
+print("🌱 바이오매스 효율 시뮬레이션")
+print("사용 가능한 연료:", list(fuel_library.keys()))
+
+fuel_name = input("연료를 입력하세요: ")
+while fuel_name not in fuel_library:
+    fuel_name = input("⚠ 유효한 연료명을 다시 입력하세요: ")
+
+print("\n건조 상태를 선택해주세요:")
+print("1. 건조: 연료가 부서지거나 쉽게 부스러짐")
+print("2. 보통: 약간 습기가 느껴짐")
+print("3. 습함: 손에 물기가 묻어짐")
+dryness = input("건조 상태 (1/2/3): ")
+while dryness not in ['1', '2', '3']:
+    dryness = input("⚠ 1, 2, 3 중 하나를 선택하세요: ")
+
+dryness = ['건조', '보통', '습함'][int(dryness) - 1]
+
+# 산소 상태 입력
+print("\n산소 상태를 선택해주세요:")
+print("1. 부족: 연료가 너무 압축되어 공기가 잘 통하지 않음")
+print("2. 적정: 연료가 적당히 퍼져 있고 공기가 원활하게 흐름")
+print("3. 과잉: 너무 많은 공기가 공급됨")
+oxygen = input("산소 상태 (1/2/3): ")
+while oxygen not in ['1', '2', '3']:
+    oxygen = input("⚠ 1, 2, 3 중 하나를 선택하세요: ")
+
+oxygen = ['부족', '적정', '과잉'][int(oxygen) - 1]
+
+try:
+    temperature = float(input("연소 온도(℃): "))
+except ValueError:
+    print("⚠ 숫자만 입력하세요.")
+    exit()
+
+# 시뮬레이션 실행
+fuel = BiomassFuel(fuel_name, fuel_library[fuel_name])
+sim = BiomassSimulation(fuel, dryness, temperature, oxygen)
+
+eff = sim.calculate_efficiency()
+heat = sim.calculate_heat()
+
+# 결과 출력
+print("\n✅ 결과 요약")
+print(f"연료: {fuel_name} (셀룰로오스 {fuel.cellulose_ratio}%)")
+print(f"건조 상태: {dryness}, 산소 상태: {oxygen}, 온도: {temperature}℃")
+print(f"예상 효율: {eff}%, 발열량: {heat} MJ")
+
+# 🔁 최적화 추천 피드백
+recommendations = []
+
+if dryness != '건조':
+    recommendations.append("연료를 건조하게 유지하면 효율이 높아집니다.")
+if oxygen != '적정':
+    recommendations.append("산소 공급량을 적정 수준으로 맞추면 손실을 줄일 수 있어요.")
+if temperature < 500:
+    recommendations.append("온도를 500℃ 이상으로 유지하면 열효율이 더 좋아질 수 있어요.")
+if fuel.cellulose_ratio < 50:
+    recommendations.append("셀룰로오스 함량이 높은 연료(예: 커피박, 톱밥)를 사용하면 좋습니다.")
+
+if recommendations:
+    print("\n💡 효율 향상을 위한 제안:")
+    for tip in recommendations:
+        print("- " + tip)
+else:
+    print("\n🚀 입력 조건이 최적화에 가까워요! 잘 선택했어요.")
